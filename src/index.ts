@@ -68,13 +68,12 @@ const getLatestChallenge = async (dayDir: string) => {
   return CHALLENGES.find(challenge => files.has(challenge));
 };
 
-const getResult = async (solve: Solver, dayDir: string) => {
+const getParsedInput = async (dayDir: string) => {
   const inputString = await getInput(dayDir);
   const parse = getParser(dayDir) as Parser;
   const input = parse(inputString);
-  const result = solve(input);
 
-  return result;
+  return input;
 };
 
 const run = async (dayArg?: string, challengeArg?: string) => {
@@ -96,7 +95,11 @@ const run = async (dayArg?: string, challengeArg?: string) => {
   const challengePath = path.join(dayDir, challengeFilename);
 
   const solve = require(challengePath).default as Solver;
-  const result = await getResult(solve, dayDir);
+  const input = await getParsedInput(dayDir);
+
+  console.time('solve');
+  const result = solve(input);
+  console.timeEnd('solve');
 
   console.log(`Result for day ${day}${challenge} (copied to clipboard)`);
   console.log(result);
