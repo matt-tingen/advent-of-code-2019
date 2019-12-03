@@ -3,13 +3,13 @@ import { runIntCode } from './intCode';
 
 const testRunIntCode: Macro<[number[], number[]]> = (
   t,
-  startProgram,
-  endProgram,
+  startMemory,
+  endMemory,
 ) => {
-  t.deepEqual(runIntCode(startProgram), endProgram);
+  t.deepEqual(runIntCode(startMemory), endMemory);
 };
-testRunIntCode.title = (title, startProgram, endProgram) =>
-  `${startProgram.join(',')} yields ${endProgram.join(',')}`;
+testRunIntCode.title = (title, startMemory, endMemory) =>
+  `${startMemory.join(',')} yields ${endMemory.join(',')}`;
 
 test(testRunIntCode, [1, 0, 0, 0, 99], [1 + 1, 0, 0, 0, 99]);
 test(testRunIntCode, [2, 3, 0, 3, 99], [2, 3, 0, 3 * 2, 99]);

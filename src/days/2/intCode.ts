@@ -1,16 +1,16 @@
-export const runIntCode = (program: number[]) => {
-  let index = 0;
+export const runIntCode = (initialMemory: number[]) => {
+  let instructionPointer = 0;
   let done = false;
-  let currentProgram: number[] | null = program;
+  let currentMemory: number[] | null = initialMemory;
 
   while (!done) {
-    const newProgram = runStep(currentProgram, index);
-    currentProgram = newProgram || currentProgram;
-    done = !newProgram;
-    index += 4;
+    const newMemory = runInstruction(currentMemory, instructionPointer);
+    currentMemory = newMemory || currentMemory;
+    done = !newMemory;
+    instructionPointer += 4;
   }
 
-  return currentProgram;
+  return currentMemory;
 };
 
 const operations: Record<number, (a: number, b: number) => number> = {
@@ -18,20 +18,25 @@ const operations: Record<number, (a: number, b: number) => number> = {
   2: (a, b) => a * b,
 };
 
-const runStep = (program: number[], index: number): number[] | null => {
-  const [opCode, leftAddress, rightAddress, destAddress] = program.slice(index);
+const runInstruction = (
+  memory: number[],
+  instructionPointer: number,
+): number[] | null => {
+  const [opCode, leftAddress, rightAddress, destAddress] = memory.slice(
+    instructionPointer,
+  );
 
   if (opCode === 99) {
     return null;
   }
 
-  const left = program[leftAddress];
-  const right = program[rightAddress];
+  const left = memory[leftAddress];
+  const right = memory[rightAddress];
   const operation = operations[opCode];
   const result = operation(left, right);
 
-  const alteredProgram = [...program];
-  alteredProgram[destAddress] = result;
+  const alteredMemory = [...memory];
+  alteredMemory[destAddress] = result;
 
-  return alteredProgram;
+  return alteredMemory;
 };
