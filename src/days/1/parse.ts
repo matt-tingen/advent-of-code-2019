@@ -1,5 +1,3 @@
-import _ from 'lodash';
+import intLines from '../../parsers/intLines';
 
-const parse = (string: string) => string.split('\n').map(_.unary(parseInt));
-
-export default parse;
+export default intLines;

@@ -1,5 +1,3 @@
-import _ from 'lodash';
+import intCsv from '../../parsers/intCsv';
 
-const parse = (string: string) => string.split(',').map(_.unary(parseInt));
-
-export default parse;
+export default intCsv;
