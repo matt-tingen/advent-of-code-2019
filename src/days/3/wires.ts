@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import intCsv from '../../parsers/intCsv';
+import parseIntCsv from '../../parsers/parseIntCsv';
 
 export type Direction = 'U' | 'D' | 'L' | 'R';
 export interface WireMove {
@@ -63,6 +63,6 @@ export const getLatencies = (path: WirePath) => {
 };
 
 const stringifyPoint = ([x, y]: Point) => `${x},${y}`;
-const parsePoint = (string: string) => intCsv(string) as Point;
+const parsePoint = (string: string) => parseIntCsv(string) as Point;
 
 const distance = ([x, y]: Point) => Math.abs(x) + Math.abs(y);

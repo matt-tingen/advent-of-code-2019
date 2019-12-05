@@ -1,3 +1,3 @@
-import intCsv from '../../parsers/intCsv';
+import parseIntCsv from '../../parsers/parseIntCsv';
 
-export default intCsv;
+export default parseIntCsv;

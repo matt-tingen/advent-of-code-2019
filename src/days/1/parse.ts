@@ -1,3 +1,3 @@
-import intLines from '../../parsers/intLines';
+import parseIntLines from '../../parsers/parseIntLines';
 
-export default intLines;
+export default parseIntLines;
