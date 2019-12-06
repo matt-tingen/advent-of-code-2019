@@ -1,4 +1,5 @@
-import { runIntCode, prepareMemory } from './intCode';
+import { runIntCode } from './intCode';
+import prepareMemory from './prepareMemory';
 
 // https://adventofcode.com/2019/day/2
 export default (memory: number[]) => {
