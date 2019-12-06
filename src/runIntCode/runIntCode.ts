@@ -1,10 +1,7 @@
 import _ from 'lodash';
 
 type Memory = number[];
-type Operations = Record<
-  number,
-  (modes: number[], ...params: number[]) => void
->;
+type Operation = (modes: number[], ...params: number[]) => boolean | void;
 
 export const parseInstructionHead = (value: number) => {
   const opCode = value % 100;
@@ -25,63 +22,88 @@ class IntCodeComputer {
 
   outputs: number[] = [];
 
-  private operations: Operations = {
-    // Addition
-    1: ([aMode, bMode], a, b, dest) => {
+  private instructionPointer = 0;
+  private operations: Operation[] = [
+    _.noop,
+    // 1: addition
+    ([aMode, bMode], a, b, dest) => {
       this.memory[dest] = this.getParam(a, aMode) + this.getParam(b, bMode);
     },
-    // Multiplication
-    2: ([aMode, bMode], a, b, dest) => {
+    // 2: multiplication
+    ([aMode, bMode], a, b, dest) => {
       this.memory[dest] = this.getParam(a, aMode) * this.getParam(b, bMode);
     },
-    // Input
-    3: (modes, dest) => {
+    // 3: input
+    (modes, dest) => {
       this.memory[dest] = this.input!;
     },
-    // Output
-    4: ([mode], param) => {
+    // 4: output
+    ([mode], param) => {
       this.outputs.push(this.getParam(param, mode));
     },
-  };
+    // 5: jump-if-true
+    ([conditionMode, pointerMode], condition, pointer) => {
+      if (this.getParam(condition, conditionMode)) {
+        this.instructionPointer = this.getParam(pointer, pointerMode);
+        return true;
+      }
+    },
+    // 6: jump-if-false
+    ([conditionMode, pointerMode], condition, pointer) => {
+      if (!this.getParam(condition, conditionMode)) {
+        this.instructionPointer = this.getParam(pointer, pointerMode);
+        return true;
+      }
+    },
+    // 7: less-than
+    ([aMode, bMode], a, b, dest) => {
+      const isLessThan = this.getParam(a, aMode) < this.getParam(b, bMode);
+      this.memory[dest] = +isLessThan;
+    },
+    // 8: equals
+    ([aMode, bMode], a, b, dest) => {
+      const isEqual = this.getParam(a, aMode) === this.getParam(b, bMode);
+      this.memory[dest] = +isEqual;
+    },
+  ];
 
   run() {
-    let instructionPointer = 0;
-    let increment = 0;
-
-    do {
-      increment = this.runInstruction(instructionPointer);
-      instructionPointer += increment;
-    } while (increment);
+    this.instructionPointer = 0;
+    while (this.runInstruction()) {}
   }
 
   private getParam(value: number, mode: number) {
     return mode ? value : this.memory[value];
   }
 
-  private runInstruction(instructionPointer: number): number {
+  private runInstruction(): boolean {
     const { opCode, paramModes } = parseInstructionHead(
-      this.memory[instructionPointer],
+      this.memory[this.instructionPointer],
     );
 
     if (opCode === 99) {
-      return 0;
+      return false;
     }
 
     const operation = this.operations[opCode];
     const numParams = operation.length - 1;
     const params = this.memory.slice(
-      instructionPointer + 1,
-      instructionPointer + numParams + 1,
+      this.instructionPointer + 1,
+      this.instructionPointer + numParams + 1,
     );
 
-    operation(paramModes, ...params);
+    const pointerUpdated = operation(paramModes, ...params);
 
-    return numParams + 1;
+    if (!pointerUpdated) {
+      this.instructionPointer += numParams + 1;
+    }
+
+    return true;
   }
 }
 
 const runIntCode = (memory: Memory, input?: number) => {
-  const computer = new IntCodeComputer(memory, input);
+  const computer = new IntCodeComputer([...memory], input);
   computer.run();
 
   return computer;
