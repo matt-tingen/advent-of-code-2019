@@ -1,44 +1,48 @@
-const runIntCode = (initialMemory: number[]) => {
-  let instructionPointer = 0;
-  let done = false;
-  let currentMemory: number[] | null = initialMemory;
-
-  while (!done) {
-    const newMemory = runInstruction(currentMemory, instructionPointer);
-    currentMemory = newMemory || currentMemory;
-    done = !newMemory;
-    instructionPointer += 4;
-  }
-
-  return currentMemory;
-};
+type Memory = number[];
 
 const operations: Record<number, (a: number, b: number) => number> = {
   1: (a, b) => a + b,
   2: (a, b) => a * b,
 };
 
-const runInstruction = (
-  memory: number[],
-  instructionPointer: number,
-): number[] | null => {
-  const [opCode, leftAddress, rightAddress, destAddress] = memory.slice(
-    instructionPointer,
-  );
+class IntCodeComputer {
+  constructor(public memory: Memory) {}
 
-  if (opCode === 99) {
-    return null;
+  run() {
+    let instructionPointer = 0;
+    let opCode: number = -1;
+
+    while (opCode !== 99) {
+      const [opCode_, increment] = this.runInstruction(instructionPointer);
+      opCode = opCode_;
+      instructionPointer += increment;
+    }
   }
 
-  const left = memory[leftAddress];
-  const right = memory[rightAddress];
-  const operation = operations[opCode];
-  const result = operation(left, right);
+  private runInstruction(instructionPointer: number): [number, number] {
+    const [opCode, leftAddress, rightAddress, destAddress] = this.memory.slice(
+      instructionPointer,
+    );
 
-  const alteredMemory = [...memory];
-  alteredMemory[destAddress] = result;
+    if (opCode === 99) {
+      return [opCode, 0];
+    }
 
-  return alteredMemory;
+    const left = this.memory[leftAddress];
+    const right = this.memory[rightAddress];
+    const operation = operations[opCode];
+    const result = operation(left, right);
+
+    this.memory[destAddress] = result;
+
+    return [opCode, 4];
+  }
+}
+
+const runIntCode = (memory: Memory) => {
+  const computer = new IntCodeComputer(memory);
+  computer.run();
+  return computer.memory;
 };
 
 export default runIntCode;
