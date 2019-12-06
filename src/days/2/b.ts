@@ -8,7 +8,7 @@ export default (memory: number[]) => {
   for (let noun = 0; noun < 100; noun++) {
     for (let verb = 0; verb < 100; verb++) {
       const preparedMemory = prepareMemory(memory, noun, verb);
-      const resultMemory = runIntCode(preparedMemory);
+      const resultMemory = runIntCode(preparedMemory).memory;
 
       if (resultMemory[0] === GOAL) {
         return 100 * noun + verb;

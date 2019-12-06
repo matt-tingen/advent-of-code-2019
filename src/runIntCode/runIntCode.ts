@@ -21,14 +21,26 @@ export const parseInstructionHead = (value: number) => {
 };
 
 class IntCodeComputer {
-  constructor(public memory: Memory) {}
+  constructor(public memory: Memory, private input?: number) {}
+
+  outputs: number[] = [];
 
   private operations: Operations = {
+    // Addition
     1: ([aMode, bMode], a, b, dest) => {
       this.memory[dest] = this.getParam(a, aMode) + this.getParam(b, bMode);
     },
+    // Multiplication
     2: ([aMode, bMode], a, b, dest) => {
       this.memory[dest] = this.getParam(a, aMode) * this.getParam(b, bMode);
+    },
+    // Input
+    3: (modes, dest) => {
+      this.memory[dest] = this.input!;
+    },
+    // Output
+    4: ([mode], param) => {
+      this.outputs.push(this.getParam(param, mode));
     },
   };
 
@@ -68,10 +80,11 @@ class IntCodeComputer {
   }
 }
 
-const runIntCode = (memory: Memory) => {
-  const computer = new IntCodeComputer(memory);
+const runIntCode = (memory: Memory, input?: number) => {
+  const computer = new IntCodeComputer(memory, input);
   computer.run();
-  return computer.memory;
+
+  return computer;
 };
 
 export default runIntCode;
