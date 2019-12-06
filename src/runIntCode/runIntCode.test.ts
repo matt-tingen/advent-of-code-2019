@@ -1,5 +1,5 @@
 import test, { Macro } from 'ava';
-import { runIntCode } from './intCode';
+import runIntCode from './runIntCode';
 
 const testRunIntCode: Macro<[number[], number[]]> = (
   t,

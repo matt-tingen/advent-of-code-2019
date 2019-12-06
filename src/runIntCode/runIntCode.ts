@@ -1,4 +1,4 @@
-export const runIntCode = (initialMemory: number[]) => {
+const runIntCode = (initialMemory: number[]) => {
   let instructionPointer = 0;
   let done = false;
   let currentMemory: number[] | null = initialMemory;
@@ -40,3 +40,5 @@ const runInstruction = (
 
   return alteredMemory;
 };
+
+export default runIntCode;

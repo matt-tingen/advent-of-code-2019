@@ -1,4 +1,4 @@
-import { runIntCode } from './intCode';
+import runIntCode from '../../runIntCode';
 import prepareMemory from './prepareMemory';
 
 // https://adventofcode.com/2019/day/2

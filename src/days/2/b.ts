@@ -1,4 +1,4 @@
-import { runIntCode } from './intCode';
+import runIntCode from '../../runIntCode';
 import prepareMemory from './prepareMemory';
 
 const GOAL = 19690720;
