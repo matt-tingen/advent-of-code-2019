@@ -1,41 +1,46 @@
 type Memory = number[];
 
-const operations: Record<number, (a: number, b: number) => number> = {
-  1: (a, b) => a + b,
-  2: (a, b) => a * b,
-};
+type Operations = Record<number, (...params: number[]) => void>;
 
 class IntCodeComputer {
   constructor(public memory: Memory) {}
 
+  private operations: Operations = {
+    1: (a, b, dest) => {
+      this.memory[dest] = this.memory[a] + this.memory[b];
+    },
+    2: (a, b, dest) => {
+      this.memory[dest] = this.memory[a] * this.memory[b];
+    },
+  };
+
   run() {
     let instructionPointer = 0;
-    let opCode: number = -1;
+    let increment = 0;
 
-    while (opCode !== 99) {
-      const [opCode_, increment] = this.runInstruction(instructionPointer);
-      opCode = opCode_;
+    do {
+      increment = this.runInstruction(instructionPointer);
       instructionPointer += increment;
-    }
+    } while (increment);
   }
 
-  private runInstruction(instructionPointer: number): [number, number] {
-    const [opCode, leftAddress, rightAddress, destAddress] = this.memory.slice(
-      instructionPointer,
-    );
+  private runInstruction(instructionPointer: number): number {
+    const opCode = this.memory[instructionPointer];
 
     if (opCode === 99) {
-      return [opCode, 0];
+      return 0;
     }
 
-    const left = this.memory[leftAddress];
-    const right = this.memory[rightAddress];
-    const operation = operations[opCode];
-    const result = operation(left, right);
+    const operation = this.operations[opCode];
+    const numParams = operation.length;
+    const params = this.memory.slice(
+      instructionPointer + 1,
+      instructionPointer + numParams + 1,
+    );
 
-    this.memory[destAddress] = result;
+    operation(...params);
 
-    return [opCode, 4];
+    return numParams + 1;
   }
 }
 
