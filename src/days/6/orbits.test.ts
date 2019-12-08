@@ -1,9 +1,68 @@
 import _ from 'lodash';
-import test from 'ava';
-import { buildOrbitTree, countOrbits } from './orbits';
+import test, { Macro } from 'ava';
+import { buildOrbitTree, countOrbits, Orbit, calcDistance } from './orbits';
+
+/**
+ * COM - A
+ */
+const twoBodyOrbits: Orbit[] = [['COM', 'A']];
+
+/**
+ *      B
+ *     /
+ * COM - A
+ */
+const splitTreeOrbits: Orbit[] = [
+  ['COM', 'A'],
+  ['COM', 'B'],
+];
+
+/**
+ * COM - A - B
+ */
+const chainOrbits: Orbit[] = [
+  ['COM', 'A'],
+  ['A', 'B'],
+];
+
+/**
+ *         C
+ *        /
+ * COM - A - B
+ *        \   \
+ *         D   E
+ */
+const branchingTreeOrbits: Orbit[] = [
+  ['COM', 'A'],
+  ['A', 'B'],
+  ['A', 'C'],
+  ['A', 'D'],
+  ['B', 'E'],
+];
+
+/**
+ *         G - H       J - K - L
+ *        /           /
+ * COM - B - C - D - E - F
+ *                \
+ *                 I
+ */
+const complexTreeOrbits: Orbit[] = [
+  ['COM', 'B'],
+  ['B', 'C'],
+  ['C', 'D'],
+  ['D', 'E'],
+  ['E', 'F'],
+  ['B', 'G'],
+  ['G', 'H'],
+  ['D', 'I'],
+  ['E', 'J'],
+  ['J', 'K'],
+  ['K', 'L'],
+];
 
 test('buildOrbitTree builds a two-body tree', t => {
-  const com = buildOrbitTree([['COM', 'A']]);
+  const { com } = buildOrbitTree(twoBodyOrbits);
 
   t.is(com.name, 'COM');
   t.falsy(com.primary);
@@ -15,21 +74,8 @@ test('buildOrbitTree builds a two-body tree', t => {
   t.true(_.isEmpty(a.satellites));
 });
 
-/**
- *         C
- *        /
- * COM - A - B
- *        \   \
- *         D   E
- */
 test('buildOrbitTree builds a branching tree', t => {
-  const com = buildOrbitTree([
-    ['COM', 'A'],
-    ['A', 'B'],
-    ['A', 'C'],
-    ['A', 'D'],
-    ['B', 'E'],
-  ]);
+  const { com } = buildOrbitTree(branchingTreeOrbits);
 
   t.is(_.size(com.satellites), 1);
 
@@ -48,61 +94,36 @@ test('buildOrbitTree builds a branching tree', t => {
   t.is(e.name, 'E');
 });
 
-test('countOrbits counts a one-body tree', t => {
-  const com = buildOrbitTree([['COM', 'A']]);
+const testCountOrbits: Macro<[Orbit[], number]> = (t, orbits, numOrbits) => {
+  const { com } = buildOrbitTree(orbits);
 
-  const numOrbits = countOrbits(com);
-  t.is(numOrbits, 1);
-});
+  t.is(countOrbits(com), numOrbits);
+};
+testCountOrbits.title = title => `counts orbits in ${title}`;
 
-test('countOrbits counts a split tree', t => {
-  const com = buildOrbitTree([
-    ['COM', 'A'],
-    ['COM', 'B'],
-  ]);
+test('one-body tree', testCountOrbits, twoBodyOrbits, 1);
+test('split tree', testCountOrbits, splitTreeOrbits, 2);
+test('chain', testCountOrbits, chainOrbits, 3);
+test('branching tree', testCountOrbits, branchingTreeOrbits, 10);
+test('complex tree', testCountOrbits, complexTreeOrbits, 42);
 
-  const numOrbits = countOrbits(com);
-  t.is(numOrbits, 2);
-});
+const testCalcDistance: Macro<[Orbit[], string, string, number]> = (
+  t,
+  orbits,
+  sourceName,
+  destName,
+  distance,
+) => {
+  const { bodies } = buildOrbitTree(orbits);
+  const source = bodies[sourceName];
+  const dest = bodies[destName];
+  t.is(calcDistance(source, dest), distance);
+};
+testCalcDistance.title = (title, orbits, src, dest, distance) =>
+  `measures distance of ${distance} between ${src} and ${dest} in ${title}`;
 
-test('countOrbits counts a chain', t => {
-  const com = buildOrbitTree([
-    ['COM', 'A'],
-    ['A', 'B'],
-  ]);
-
-  const numOrbits = countOrbits(com);
-  t.is(numOrbits, 3);
-});
-
-test('countOrbits counts a branching tree', t => {
-  const com = buildOrbitTree([
-    ['COM', 'A'],
-    ['A', 'B'],
-    ['A', 'C'],
-    ['A', 'D'],
-    ['B', 'E'],
-  ]);
-
-  const numOrbits = countOrbits(com);
-  t.is(numOrbits, 10);
-});
-
-test('countOrbits counts a complex tree', t => {
-  const com = buildOrbitTree([
-    ['COM', 'B'],
-    ['B', 'C'],
-    ['C', 'D'],
-    ['D', 'E'],
-    ['E', 'F'],
-    ['B', 'G'],
-    ['G', 'H'],
-    ['D', 'I'],
-    ['E', 'J'],
-    ['J', 'K'],
-    ['K', 'L'],
-  ]);
-
-  const numOrbits = countOrbits(com);
-  t.is(numOrbits, 42);
-});
+test('two body tree', testCalcDistance, twoBodyOrbits, 'COM', 'A', 1);
+test('two body tree (reverse)', testCalcDistance, twoBodyOrbits, 'A', 'COM', 1);
+test('split tree', testCalcDistance, splitTreeOrbits, 'A', 'B', 2);
+test('branching tree', testCalcDistance, branchingTreeOrbits, 'D', 'E', 3);
+test('complex tree', testCalcDistance, complexTreeOrbits, 'K', 'I', 4);

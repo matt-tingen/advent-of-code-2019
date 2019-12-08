@@ -38,7 +38,7 @@ export const buildOrbitTree = (orbits: Orbit[]) => {
     primary.satellites[satelliteName] = satellite;
   });
 
-  return com;
+  return { com, bodies };
 };
 
 export const countOrbits = (com: Body): number => {
@@ -57,4 +57,29 @@ export const countOrbits = (com: Body): number => {
   }
 
   return totalOrbits;
+};
+
+const getChain = (body: Body) => {
+  const chain: Body[] = [body];
+
+  while (body.primary) {
+    chain.push(body.primary);
+    body = body.primary;
+  }
+
+  return chain;
+};
+
+export const calcDistance = (source: Body, dest: Body) => {
+  const sourcePrimaries = getChain(source);
+  const destPrimaries = getChain(dest);
+  const nearestCommonPrimary = sourcePrimaries.find(primary =>
+    destPrimaries.includes(primary),
+  )!;
+
+  const distance =
+    sourcePrimaries.indexOf(nearestCommonPrimary) +
+    destPrimaries.indexOf(nearestCommonPrimary);
+
+  return distance;
 };
